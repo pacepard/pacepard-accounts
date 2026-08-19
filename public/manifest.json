@@ -1,0 +1,17 @@
+{
+  "name": "Onaeko - your best way to learn",
+  "short_name": "Onaeko",
+  "description": "Onaeko - your best way to learn",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#F56C23",
+  "icons": [
+    {
+      "src": "/blocks/onaeko-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
