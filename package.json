@@ -6,11 +6,11 @@
     "description": "Pacepard Accounts — authentication and account management",
     "packageManager": "pnpm@9.15.4",
     "engines": {
-        "node": ">=20.19"
+        "node": "20.x"
     },
     "scripts": {
         "dev": "vite --port 5401 --strictPort",
-        "build": "tsc -b && vite build",
+        "build": "vite build",
         "typecheck": "tsc -b --pretty false",
         "lint": "oxlint",
         "preview": "vite preview --port 5401 --strictPort",
