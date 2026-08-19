@@ -7,7 +7,10 @@ import ForgotPassword from '@/app/auth/ForgotPassword';
 import ResetPassword from '@/app/auth/ResetPassword';
 import Verification from '@/app/auth/Verification';
 import DashboardLayout from '@/components/layouts/dashboard-layout';
-import { getAppPages } from './pages';
+import Dashboard from '@/app/dashboard/Dashboard';
+import Profile from '@/app/accounts/Profile';
+import Security from '@/app/accounts/Security';
+import Billing from '@/app/accounts/Billing';
 import ErrorPage from '@/app/Error';
 
 const accountRoutes: Array<IRoute> = [
@@ -49,22 +52,22 @@ const accountRoutes: Array<IRoute> = [
             {
                 name: 'my-account',
                 index: true,
-                element: getAppPages('my-account'),
+                element: <Dashboard />,
             },
             {
                 name: 'profile',
                 path: 'profile',
-                element: getAppPages('profile'),
+                element: <Profile />,
             },
             {
                 name: 'security',
                 path: 'security',
-                element: getAppPages('security'),
+                element: <Security />,
             },
             {
                 name: 'billing',
                 path: 'billing',
-                element: getAppPages('billing'),
+                element: <Billing />,
             },
             {
                 name: 'my-account-splat',
