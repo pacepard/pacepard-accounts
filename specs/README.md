@@ -25,5 +25,5 @@ Spec layout matches Troott web specs (`PRODUCT` + `TECH` + optional `TASKS` + a 
 | Source | Role |
 | ------ | ---- |
 | `pacepard-accounts` | Implementation target |
-| `/Users/pro/Documents/madebydamola/learn/pacepard` | Routing pattern (`getAppPages`: `home` / `dashboard` → `<Dashboard />`), `DashboardLayout`, shadcn sidebar |
+| `/Users/pro/Documents/madebydamola/learn/pacepard` | Routing pattern (explicit route `element`s, not a page switch), `DashboardLayout`, shadcn sidebar |
 | `/Users/pro/Documents/madebydamola/learn/troott/apps/web` | Portal shell: always-mounted sidebar; **top chrome is Troott `NavBar`** (`Trigger` + `TopNav` breadcrumbs + bell/help + `UserAvatar`) |

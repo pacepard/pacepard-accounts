@@ -37,7 +37,7 @@ Onboarding routes stay on [`OnboardingLayout`](../../../src/components/layouts/o
 | UC-DH03 | Signed-in user | Troott-style top nav with breadcrumbs | I know where I am and can go up a level without a Back button |
 | UC-DH04 | Signed-in user | Collapse the sidebar from the Troott trigger and have it remembered | Chrome stays out of the way |
 | UC-DH05 | Visitor with no session | `/` still sends me to login | Public root does not expose the shell |
-| UC-DH06 | Engineer | `getAppPages('home')` returns `<Dashboard />` | Route name → page is one switch, same as Pacepard `AppRoutes.tsx` |
+| UC-DH06 | Engineer | `/my-account` uses `<Dashboard />` as the route `element` | No name → page switch |
 | UC-DH07 | Signed-in user | Avatar menu with Profile and Logout in the top nav | I can reach account actions the same way as Troott portal |
 
 ## Behavior
@@ -50,15 +50,7 @@ Onboarding routes stay on [`OnboardingLayout`](../../../src/components/layouts/o
 
 3. Canonical signed-in home **path** is `/my-account` (`RouteURL.myAccount`). Login after completed onboarding already uses this ([`login-form.tsx`](../../../src/components/base/auth/login-form.tsx) → `getOnboardingRoute`).
 
-4. Route **names** that render Dashboard:
-
-   | Name | When it appears |
-   | ---- | --------------- |
-   | `my-account` | Authenticated route at `/my-account` (today) |
-   | `home` | Alias in `getAppPages` (Pacepard `case 'home'`) |
-   | `dashboard` | Alias in `getAppPages` (Pacepard `case 'dashboard'`) |
-
-   All three return `<Dashboard />`. Only `/my-account` is a user-visible path in v1.
+4. Signed-in home is **one route**: `name: 'my-account'`, path `/my-account`, `element: <Dashboard />`. Do **not** add a `pages.tsx` / `getAppPages` switch, and do **not** register `home` or `dashboard` as extra authenticated paths.
 
 ### B. Dashboard page
 
@@ -219,7 +211,7 @@ Figma: none provided.
 | Topic | Decision | Why |
 | ----- | -------- | --- |
 | Signed-in home URL | Keep `/my-account` | `useAuth`, `getOnboardingRoute`, `login-form` already land here |
-| `home` / `dashboard` names | Aliases → `<Dashboard />` only (no extra paths) | Pacepard `AppRoutes` compat; SHELL SPEC §2 |
+| `home` / `dashboard` names | **Do not register** as authenticated routes | Public `home` is `/` → login only |
 | Dashboard body | Current MyAccount UI | This app is Accounts, not `apps/main` |
 | Sidebar data | `sidebar.route.ts` only; **flatten** to Home + siblings | Avoid nested “My account” group in v1 |
 | Home label in sidebar | **Home** | Path stays `/my-account` |
@@ -247,7 +239,7 @@ Figma: none provided.
 
 ## Success criteria
 
-- [ ] `getAppPages('home')`, `getAppPages('dashboard')`, and `getAppPages('my-account')` return `<Dashboard />` (aliases only).
+- [ ] `/my-account` renders `<Dashboard />` as the route `element` (no `pages.tsx`).
 - [ ] Signed-in `/my-account` shows Dashboard inside `DashboardLayout` with sidebar + **Troott `NavBar`** and **`<Outlet />`**.
 - [ ] Sidebar header uses **Logo / LogoIcon** linked to `/my-account`.
 - [ ] `NavBar` composition matches [DASHBOARD_SHELL_SPEC §5](./DASHBOARD_SHELL_SPEC.md#5-troott-navbar-v1) (Trigger, TopNav, bell, help, UserAvatar).

@@ -123,63 +123,40 @@ pacepard-accounts/src/
   components/layouts/
     dashboard-layout.tsx             # gate + NavBar + main#dashboard-body + <Outlet />
   routes/
-    pages.tsx                        # getAppPages(name)
-    account.route.tsx / dashboard.route.tsx  # nested children under layout
+    account.route.tsx                # explicit page elements; nested children under layout
     routes.tsx                       # recurse children
     sidebar.route.ts                 # title Home; keep paths
 ```
 
-### `getAppPages` (normative)
+### Route elements (no page switch)
 
-New [`src/routes/pages.tsx`](../../../src/routes/pages.tsx) — Pacepard `getAppPages` shape, Accounts inventory only:
+Do **not** add [`pages.tsx`](../../../src/routes/pages.tsx) or `getAppPages`. Each dashboard-shell row sets `element` to the component, same as auth routes.
 
-```ts
-export function getAppPages(name: string): ReactElement {
-    switch (name) {
-        case 'dashboard':
-        case 'home':
-        case 'my-account':
-            return <Dashboard />;
-        case 'profile':
-            return <Profile />;
-        case 'security':
-            return <Security />;
-        case 'billing':
-            return <Billing />;
-        default:
-            return <ErrorPage />;
-    }
-}
-```
-
-Public auth names stay as **explicit `element`** on `account.route.tsx` / onboarding routes (already wrap `AuthLayout` / `OnboardingLayout`). Do not force those through `getAppPages` in v1 unless a later feat unifies all names.
-
-`base.route.tsx` `home` at `/` keeps `redirect: RouteURL.login`. `getAppPages('home')` is **not** used for that public row.
+Public auth names stay as **explicit `element`** on `account.route.tsx` / onboarding routes. `base.route.tsx` `home` at `/` keeps `redirect: RouteURL.login`.
 
 ### Route renderer
 
 Prefer Troott nested shell (SHELL SPEC §2):
 
 ```tsx
-// Parent (auth shell)
 {
   path: '/my-account',
   element: <DashboardLayout />, // contains <Outlet />
   children: [
-    { index: true, element: getAppPages('my-account') },
-    { path: 'profile', element: getAppPages('profile') },
-    { path: 'security', element: getAppPages('security') },
-    { path: 'billing', element: getAppPages('billing') },
+    { index: true, element: <Dashboard /> },
+    { path: 'profile', element: <Profile /> },
+    { path: 'security', element: <Security /> },
+    { path: 'billing', element: <Billing /> },
   ],
 }
 ```
 
-Wire via `IRoute.children` in `account.route.tsx` / a new `dashboard.route.tsx`, and teach `routes.tsx` to recurse children (already supports `route.children`).
+Wire via `IRoute.children` in `account.route.tsx`, and teach `routes.tsx` to recurse children (already supports `route.children`).
 
 **Do not** use long-term:
 
 ```tsx
-<DashboardLayout component={getAppPages(route.name)} title=… back=… />
+<DashboardLayout component={<Dashboard />} title=… back=… />
 ```
 
 No `title` / `back` chrome props. Remove `component` from the layout API when Outlet lands.
@@ -197,7 +174,6 @@ Register shell children:
 
 Do **not** add `path: '/dashboard'`. Do **not** register deep `paths.ts` entries (edit, password, 2fa, …) in v1 — they fall through to `*`.
 
-`getAppPages('home' | 'dashboard')` remain aliases with **no** route rows.
 ### `sidebar.route.ts`
 
 Keep paths. Set parent `title` to `Home` (PRODUCT). `AppSidebar` **flattens** parent + `subroutes` into four Main links (SHELL SPEC §3).
@@ -320,7 +296,7 @@ Keep existing PostHog / Sentry identify in `DashboardLayout` (`isProd` only). No
 
 | Phase | Scope |
 | ----- | ----- |
-| **P0** | `getAppPages`; extract `Dashboard`; nested shell + **Outlet**; profile/security/billing `h1` stubs |
+| **P0** | Explicit route `element`s; extract `Dashboard`; nested shell + **Outlet**; profile/security/billing `h1` stubs |
 | **P1** | `AppSidebar` from `sidebar.route.ts` + **Logo/LogoIcon**; flat Home list; footer logout; collapse/sheet |
 | **P2** | Troott `NavBar`; breadcrumb-map + normalize; layout session + onboarding gate; remove Accounts `TopBar` |
 | **P3** | Manual QA incl. deep URL → ErrorPage; typecheck/build; remove double layout |
@@ -333,7 +309,7 @@ Accounts has no test runner. Verification:
 
 | Check | How |
 | ----- | --- |
-| `getAppPages` aliases | Typecheck + manual: names listed in DASHBOARD_SHELL_SPEC §2 |
+| Route `element`s | Typecheck + manual: names listed in DASHBOARD_SHELL_SPEC §2 |
 | Shell on `/my-account` | Manual: sidebar + Troott NavBar (trigger, crumbs, bell, help, avatar) + Dashboard cards |
 | Unauthenticated `/` | Manual: lands on login |
 | Child routes | Manual: Profile/Security/Billing in shell; Home not active; NavBar still visible |
@@ -349,9 +325,8 @@ If Vitest is added later, first units: `isSidebarPathActive`, breadcrumb path bu
 
 | File | Action |
 | ---- | ------ |
-| `src/routes/pages.tsx` | **Add** `getAppPages` |
+| `src/routes/account.route.tsx` | Nested `/my-account` layout; **explicit** `<Dashboard />` / `<Profile />` / … `element`s |
 | `src/routes/routes.tsx` | Recurse `children`; shell parent + Outlet |
-| `src/routes/account.route.tsx` / `dashboard.route.tsx` | Nested `/my-account` layout + profile/security/billing children |
 | `src/routes/sidebar.route.ts` | Parent title `Home` |
 | `src/app/dashboard/Dashboard.tsx` | **Add** — MyAccount body |
 | `src/app/accounts/MyAccount.tsx` | Re-export or delete |
@@ -374,7 +349,7 @@ If Vitest is added later, first units: `isSidebarPathActive`, breadcrumb path bu
 ## Acceptance (engineering)
 
 1. `pnpm typecheck` and `pnpm build` pass in `pacepard-accounts`.
-2. `getAppPages('home')` / `'dashboard'` / `'my-account'` render the same Dashboard component (aliases; no `/dashboard` path).
+2. `/my-account` uses `<Dashboard />` as `element`; no `pages.tsx`.
 3. Public `home` at `/` still redirects to login when `IRoute.redirect` is set.
 4. No `DashboardLayout` nested inside `Dashboard`; shell uses **`<Outlet />`**.
 5. Sidebar DOM uses `@pacepard/ui/sidebar` slots; header is **Logo / LogoIcon**.

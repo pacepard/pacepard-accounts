@@ -10,27 +10,28 @@
 
 ## Phase 1 — Route map and Dashboard page (P0)
 
-### Task 1: `getAppPages`
+### Task 1: Nested `/my-account` routes
 
-**Description:** Add `src/routes/pages.tsx` with the switch in [DASHBOARD_SHELL_SPEC §2](./DASHBOARD_SHELL_SPEC.md#2-getapppages-map-v1). Public `/` continues to use `redirect` in `base.route.tsx` and must be applied **before** the switch.
+**Description:** Keep public `/` as `redirect` in `base.route.tsx`. Register dashboard-shell children with **explicit page `element`s** ([DASHBOARD_SHELL_SPEC §2](./DASHBOARD_SHELL_SPEC.md#2-route-elements-v1)). Do **not** add `pages.tsx` / `getAppPages`.
 
 **Acceptance criteria:**
 
-- [x] `getAppPages('home')`, `getAppPages('dashboard')`, and `getAppPages('my-account')` return `<Dashboard />`
-- [x] Unknown names return the existing error page component
+- [x] `/my-account` `element` is `<Dashboard />`
+- [x] Profile / Security / Billing use their page components directly
 - [x] `base.route.tsx` `home` still redirects to login
+- [x] No `src/routes/pages.tsx`
 
 **Verification:** `pnpm typecheck`. Manual: logged-out `/` → `/login`.
 
 **Dependencies:** None
 
-**Files likely touched:** `src/routes/pages.tsx`, `src/routes/routes.tsx`, `src/routes/base.route.tsx` (read-only unless redirect order is wrong)
+**Files likely touched:** `src/routes/account.route.tsx`, `src/routes/routes.tsx`, `src/routes/base.route.tsx` (read-only unless redirect order is wrong)
 
 **Estimated scope:** S
 
 ### Task 2: Extract Dashboard; nested layout + Outlet
 
-**Description:** Move MyAccount body into `src/app/dashboard/Dashboard.tsx` with **no** `DashboardLayout` wrap. Introduce Troott-style nested shell: parent `DashboardLayout` with **`<Outlet />`**; register `my-account` (index), `profile`, `security`, `billing` as children ([DASHBOARD_SHELL_SPEC §2](./DASHBOARD_SHELL_SPEC.md#2-getapppages-map-v1)). Placeholders are a single `h1` each. Unregistered deep `/my-account/*` stay on catch-all `ErrorPage`.
+**Description:** Move MyAccount body into `src/app/dashboard/Dashboard.tsx` with **no** `DashboardLayout` wrap. Introduce Troott-style nested shell: parent `DashboardLayout` with **`<Outlet />`**; register `my-account` (index), `profile`, `security`, `billing` as children ([DASHBOARD_SHELL_SPEC §2](./DASHBOARD_SHELL_SPEC.md#2-route-elements-v1)). Placeholders are a single `h1` each. Unregistered deep `/my-account/*` stay on catch-all `ErrorPage`.
 
 **Acceptance criteria:**
 
@@ -159,7 +160,7 @@ cd pacepard-accounts && pnpm typecheck && pnpm lint && pnpm build
 
 | Risk | Impact | Mitigation |
 | ---- | ------ | ---------- |
-| Confusing public `home` (`/` redirect) with `getAppPages('home')` | High | Apply `redirect` first; aliases have no paths (SHELL SPEC §2) |
+| Confusing public `home` (`/` redirect) with signed-in `/my-account` | High | Apply `redirect` first; do not register extra home paths (SHELL SPEC §2) |
 | Copying `apps/main` Dashboard userType switch | High | PRODUCT B7 — Accounts Dashboard is MyAccount body only |
 | Copying `apps/main` TopBar (title + Back) | High | PRODUCT C13 — Troott NavBar only; no `back` |
 | Putting NavBar inside scrolling main | Medium | Match Troott DashboardLayout sibling layout |

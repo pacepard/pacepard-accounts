@@ -2,13 +2,13 @@
 
 Normative contract for Pacepard Accounts **signed-in home**, **sidebar**, **Troott `NavBar`**, and **breadcrumbs**. Extends [PRODUCT.md](./PRODUCT.md). Implementation notes: [TECH.md](./TECH.md).
 
-This file is the inventory. If PRODUCT and this file disagree, **this file wins** for labels, paths, `getAppPages` names, and NavBar regions.
+This file is the inventory. If PRODUCT and this file disagree, **this file wins** for labels, paths, route `element`s, and NavBar regions.
 
 ---
 
 ## 1. Purpose
 
-1. **Which page is home?** Route names `home`, `dashboard`, and `my-account` render `<Dashboard />`.
+1. **Which page is home?** `/my-account` renders `<Dashboard />` as the route `element`.
 2. **Where can I go?** Sidebar destinations that exist as real routes.
 3. **Where am I?** Troott `NavBar` → `TopNav` breadcrumbs from the URL + a static map.
 4. **Who am I / session?** Troott `UserAvatar` in the same `NavBar`.
@@ -17,30 +17,26 @@ Public `/` (`base.route.tsx` `name: 'home'` + `redirect`) is **not** Dashboard.
 
 ---
 
-## 2. `getAppPages` map (v1)
+## 2. Route elements (v1)
 
-| `name` | Component | User-visible path | Layout |
+Do **not** add `getAppPages` / `pages.tsx`. Set each page as an explicit `element` on the route, same as login/register.
+
+| `name` | `element` | User-visible path | Layout |
 | ------ | --------- | ----------------- | ------ |
-| `home` | `<Dashboard />` | `/my-account` (alias only — no extra path) | `DashboardLayout` |
-| `dashboard` | `<Dashboard />` | `/my-account` (alias only) | `DashboardLayout` |
-| `my-account` | `<Dashboard />` | `/my-account` | `DashboardLayout` |
-| `profile` | `<Profile />` | `/my-account/profile` | `DashboardLayout` |
-| `security` | `<Security />` | `/my-account/security` | `DashboardLayout` |
-| `billing` | `<Billing />` | `/my-account/billing` | `DashboardLayout` |
+| `my-account` | `<Dashboard />` | `/my-account` | `DashboardLayout` (parent) |
+| `profile` | `<Profile />` | `/my-account/profile` | same |
+| `security` | `<Security />` | `/my-account/security` | same |
+| `billing` | `<Billing />` | `/my-account/billing` | same |
 
 **No `back` prop / Back control** on any of these (PRODUCT C17). Up-navigation is breadcrumbs only.
 
-### Alias usage (`home` / `dashboard`)
+**Do not register** extra paths named `home` or `dashboard`. Public `/` stays `base.route.tsx` redirect → `/login`. Do **not** add `/dashboard`.
 
-- **User-visible route row:** only `my-account` at `/my-account` (plus profile / security / billing).
-- **`getAppPages('home' | 'dashboard')`:** API-compat aliases for Pacepard `AppRoutes` shape and any shared helper that switches on name. They are **not** registered as separate `path`s and must **not** add `/dashboard` or a second home URL.
-- Call sites may use any of the three names; all return the same `<Dashboard />`.
-
-**Not in this switch (keep existing `element` / `redirect`):**
+**Not dashboard-shell rows (keep existing `element` / `redirect`):**
 
 | `name` | Path | Notes |
 | ------ | ---- | ----- |
-| `home` (public row) | `/` | `base.route.tsx` redirect → `/login`. Distinct from authenticated alias above. Renderer must use `route.redirect` **before** `getAppPages`. |
+| `home` (public row) | `/` | `base.route.tsx` redirect → `/login`. Renderer uses `route.redirect` before `element`. |
 | `login`, `register`, `verify-otp`, `activate-account`, `forgot-password`, `reset-password` | auth paths | `AuthLayout` inside those pages |
 | `onboarding`, `onboard-*` | `/onboarding/**` | `OnboardingLayout` |
 | `error` | `*` | `ErrorPage` |
@@ -51,15 +47,13 @@ Public `/` (`base.route.tsx` `name: 'home'` + `redirect`) is **not** Dashboard.
 2. When a **session exists**, `useAuth` (owned by `DashboardLayout` / auth pages that already call it) redirects `/` and `/login` → `/my-account` after the login page mounts (existing effect). Do **not** change the public row into a conditional Dashboard render in v1.
 3. Result: logged-out `/` → login; logged-in hit on `/` or `/login` → `/my-account`.
 
-Pacepard `apps/main` uses one switch for every name. Accounts v1 only **requires** the dashboard-shell rows above. Unifying auth names into the switch is a later feat.
-
 ### Layout mount model (v1)
 
 **Troott-aligned nested shell:**
 
 - Parent authenticated shell route(s) render `<DashboardLayout />` with **`<Outlet />`** in `#dashboard-body` (not a `component={…}` prop for page bodies).
-- Child routes: `my-account` (index or path `/my-account`), `profile`, `security`, `billing` as **children** under that layout.
-- Pages from `getAppPages` are **outlet elements only** — they never wrap `DashboardLayout`.
+- Child routes: `my-account` (index), `profile`, `security`, `billing` as **children** under that layout.
+- Page components are **outlet elements only** — they never wrap `DashboardLayout`.
 
 If the current flat `IRoute` list makes a single parent awkward, implement an equivalent: one layout wrapper in the renderer that still uses `<Outlet />` for children, or a dedicated `dashboard.route.tsx` parent (Troott `dashboard.route.tsx` pattern). **Do not** keep long-term `DashboardLayout({ component })` as the chrome API once NavBar lands.
 
@@ -253,7 +247,7 @@ No full-viewport spinner that hides the sidebar or `NavBar`.
 
 ## 9. Acceptance criteria
 
-1. All **§2** dashboard-shell names resolve as specified; public `/` redirect still wins over `getAppPages('home')`; aliases have no extra paths.
+1. All **§2** dashboard-shell rows use explicit page `element`s; public `/` still redirects to login.
 2. All **§3** items visible and navigable for a signed-in user; header uses **Logo / LogoIcon**.
 3. Admin / talent / business users see the **same** four Main items.
 4. **§4** trails match on the four v1 URLs.
@@ -288,7 +282,7 @@ No full-viewport spinner that hides the sidebar or `NavBar`.
 | - | ----- | -------- |
 | 1 | `back` on child layouts | **Removed.** No Back control; breadcrumbs only. |
 | 2 | Public vs auth `/` | Public row always redirects to login; session then sends `/` / `/login` → `/my-account` via `useAuth` (see §2). |
-| 3 | `home` / `dashboard` names | **Aliases only** in `getAppPages`; no extra paths. |
+| 3 | `home` / `dashboard` names | **Do not register.** Public `home` is `/` → login only. |
 | 4 | Layout mount | **Troott nested shell:** `DashboardLayout` + **`<Outlet />`**; pages are children. |
 | 5 | Deep `/my-account/*` | Unregistered → **`ErrorPage` (`*`)**. No stub routes in v1. |
 | 6 | `errorElement` / data router | **Out of scope** for feat-0001. Keep `AppErrorBoundary`. `errorElement` on `base.route` stays inert until a later `useRoutes` / `createBrowserRouter` feat. |
