@@ -16,7 +16,7 @@ Local default: [http://localhost:5401](http://localhost:5401)
 
 ## Prerequisites
 
-- Node `>= 20.19`
+- Node `20.x`
 - pnpm `9.15.4` (see `packageManager` in `package.json`)
 - Pacepard API running locally (default in `.env`: `http://localhost:5015/api/v1`)
 
@@ -25,7 +25,7 @@ Local default: [http://localhost:5401](http://localhost:5401)
 ```bash
 cd pacepard-accounts
 pnpm install
-cp .env .env.local   # optional; edit URLs as needed
+cp .env.example .env.local   # optional; edit URLs as needed
 pnpm dev
 ```
 
@@ -38,15 +38,25 @@ Open **http://localhost:5401**.
 | `VITE_APP_API_URL` | Backend API base URL | `http://localhost:5015/api/v1` |
 | `VITE_APP_URL` | This app’s public origin (callbacks) | `http://localhost:5401` |
 | `VITE_ENVIRONMENT` | Runtime env label | `local` / `development` / `staging` / `production` |
+| `VITE_APP_ENVIRONMENT` | Alternate env label (if used) | same as above |
+
+## Deploy on Vercel
+
+1. Import the `pacepard-accounts` GitHub repo as a new Vercel project (root = repo root).
+2. Framework Preset: **Vite** (or leave auto — `vercel.json` sets `framework`, `buildCommand`, `outputDirectory`).
+3. Add env vars from `.env.example` (Production / Preview as needed). Values are baked in at **build** time.
+4. Deploy. Client routes (`/login`, `/account/*`, …) rewrite to `/index.html` via `vercel.json`.
+
+Coolify/Docker can be added later; this repo is Vercel-first for now.
 
 ## Scripts
 
 | Script | Description |
 | --- | --- |
 | `pnpm dev` | Dev server on **port 5401** (`--strictPort`) |
-| `pnpm build` | Typecheck + production build |
+| `pnpm build` | Production Vite build (`dist/`) |
 | `pnpm preview` | Preview production build on **port 5401** |
-| `pnpm typecheck` | `tsc -b` only |
+| `pnpm typecheck` | `tsc -b` only (legacy util types may still fail) |
 | `pnpm lint` | Oxlint |
 | `pnpm format` / `pnpm format:check` | Prettier |
 
